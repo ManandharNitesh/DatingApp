@@ -31,14 +31,18 @@ namespace API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // ordering not imp
 
             //////////////////////////////////
             services.AddDbContext<DataContext>(options =>
             {
                 options.UseSqlite(_config.GetConnectionString("DefaultConnection"));
             });
+             services.AddControllers(); //may be already addded might be
+             services.AddCors();
+
             ////////////////////////////////
-            services.AddControllers();
+           
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
@@ -48,17 +52,26 @@ namespace API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+
+            //Ordering essential here
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"));
+                // app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"));
             }
 
-            app.UseHttpsRedirection();
+            app.UseHttpsRedirection();//it is middleware
 
-            app.UseRouting();
+            app.UseRouting();//it si middleware
 
+            app.UseCors(x => x.AllowAnyHeader().WithOrigins("https://localhost:4200"));//it is middleware //x i policy
+            
+            /*
+                Authentication header
+                allow pul push method
+                but be specific in origin from 4200
+            */
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
